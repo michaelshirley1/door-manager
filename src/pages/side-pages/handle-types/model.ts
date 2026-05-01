@@ -7,5 +7,6 @@ export interface HandleType {
     mechanism: string | null;
     description: string | null;
     isActive: boolean;
+    price: number;
     createdAt: string;
 }

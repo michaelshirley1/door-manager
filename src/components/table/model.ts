@@ -3,7 +3,7 @@ import React from 'react';
 export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
     headers: headerItem[]
     rows: any[]
-    onRowClick?: (row: any) => void
+    onRowClick?: (row: any, index: number) => void
     onAddClick?: () => void
 }
 

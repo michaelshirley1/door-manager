@@ -1,4 +1,7 @@
 .table-container {
+    display: flex;
+    flex-direction: row;
+
     .table-toolbar {
         padding: 10px 16px;
         border-bottom: 1px solid #e0e0e0;
@@ -13,7 +16,9 @@
             padding: 6px 14px;
             font-size: 0.85rem;
             font-weight: 500;
+            width: 100%;
             cursor: pointer;
+            white-space: nowrap;
 
             &:hover {
                 background: #1d4ed8;
@@ -45,6 +50,8 @@
             font-size: 0.75rem;
             letter-spacing: 0.5px;
             background: #fafafa;
+            align-self: center;
+            height: 100%;
         }
 
         tbody tr:last-child td {

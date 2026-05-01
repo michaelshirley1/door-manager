@@ -2,6 +2,7 @@ import React from 'react';
 import { FormWrapperProps } from './model';
 
 import './styles.scss';
+import Button from '../button';
 
 export const FormWrapper: React.FC<FormWrapperProps> = ({ title, onSubmit, onCancel, onDelete, children }) => {
     return (
@@ -14,11 +15,11 @@ export const FormWrapper: React.FC<FormWrapperProps> = ({ title, onSubmit, onCan
             </div>
             <div className="form-actions">
                 {onDelete && (
-                    <button className="btn-danger" type="button" onClick={onDelete}>Delete</button>
+                    <Button variant="danger" type="button" onClick={onDelete}>Delete</Button>
                 )}
                 <div className="form-actions-right">
-                    <button className="btn-secondary" type="button" onClick={onCancel}>Cancel</button>
-                    <button className="btn-primary" type="button" onClick={onSubmit}>Save</button>
+                    <Button variant='secondary' type="button" onClick={onCancel}>Cancel</Button>
+                    <Button variant='primary' type="button" onClick={onSubmit}>Save</Button>
                 </div>
             </div>
         </div>

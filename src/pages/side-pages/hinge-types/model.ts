@@ -6,5 +6,6 @@ export interface HingeType {
     finish: string | null;
     description: string | null;
     isActive: boolean;
+    price: number;
     createdAt: string;
 }
