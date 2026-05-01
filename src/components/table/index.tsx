@@ -4,9 +4,14 @@ import { TableProps } from './model';
 import './styles.scss';
 
 export const Table: React.FC<TableProps> = (props) => {
-    const { headers, rows, onRowClick } = props
+    const { headers, rows, onRowClick, onAddClick } = props
     return (
         <div className="table-container">
+            {onAddClick && (
+                <div className="table-toolbar">
+                    <button className="table-add-btn" onClick={onAddClick}>+ Add</button>
+                </div>
+            )}
             <table className="data-table">
                 <thead>
                     <tr>

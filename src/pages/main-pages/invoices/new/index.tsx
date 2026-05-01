@@ -1,25 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FormWrapper } from '../../../../components/form-wrapper';
-import { useAppContext } from '../../../../context/AppContext';
+import { Invoice } from '../model';
+import { getInvoice, createInvoice, updateInvoice, deleteInvoice } from '../api';
+import { Job } from '../../jobs/model';
+import { getJobs } from '../../jobs/api';
 
 const InvoiceFormPage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const { invoices, jobs, addInvoice, updateInvoice, removeInvoice } = useAppContext();
-
-    const existing = id ? invoices.find(i => i.id === parseInt(id)) : undefined;
-
+    const [existing, setExisting] = useState<Invoice | undefined>();
+    const [jobs, setJobs] = useState<Job[]>([]);
     const [form, setForm] = useState({
-        invoiceNumber: existing?.invoiceNumber ?? '',
-        jobId:         existing?.jobId?.toString() ?? '',
-        jobNumber:     existing?.jobNumber ?? '',
-        status:        existing?.status ?? 'Draft',
-        subtotal:      existing?.subtotal?.toString() ?? '',
-        taxRate:       existing?.taxRate?.toString() ?? '0.15',
-        dueDate:       existing?.dueDate ?? '',
-        notes:         existing?.notes ?? '',
+        invoiceNumber: '',
+        jobId:         '',
+        jobNumber:     '',
+        status:        'Draft',
+        subtotal:      '',
+        taxRate:       '0.15',
+        dueDate:       '',
+        notes:         '',
     });
+
+    useEffect(() => {
+        getJobs().then(setJobs);
+        if (id) {
+            getInvoice(parseInt(id)).then(invoice => {
+                setExisting(invoice);
+                setForm({
+                    invoiceNumber: invoice.invoiceNumber ?? '',
+                    jobId:         invoice.jobId?.toString() ?? '',
+                    jobNumber:     invoice.jobNumber ?? '',
+                    status:        invoice.status ?? 'Draft',
+                    subtotal:      invoice.subtotal?.toString() ?? '',
+                    taxRate:       invoice.taxRate?.toString() ?? '0.15',
+                    dueDate:       invoice.dueDate ?? '',
+                    notes:         invoice.notes ?? '',
+                });
+            });
+        }
+    }, [id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -48,8 +68,14 @@ const InvoiceFormPage: React.FC = () => {
             issuedAt:      existing?.issuedAt ?? null,
             paidAt:        existing?.paidAt ?? null,
         };
-        existing ? updateInvoice({ ...existing, ...data }) : addInvoice(data);
-        navigate('/invoices');
+        const action = existing
+            ? updateInvoice(existing.id, { ...existing, ...data })
+            : createInvoice(data);
+        action.then(() => navigate('/invoices'));
+    };
+
+    const handleDelete = () => {
+        if (existing) deleteInvoice(existing.id).then(() => navigate('/invoices'));
     };
 
     return (
@@ -57,7 +83,7 @@ const InvoiceFormPage: React.FC = () => {
             title={existing ? `Edit ${existing.invoiceNumber}` : 'New Invoice'}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/invoices')}
-            onDelete={existing ? () => { removeInvoice(existing.id); navigate('/invoices'); } : undefined}
+            onDelete={existing ? handleDelete : undefined}
         >
             <div className="form-row">
                 <div className="form-field">

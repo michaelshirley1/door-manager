@@ -6,21 +6,19 @@ import { HomePage } from '../pages/home';
 import JobPage from '../pages/main-pages/jobs';
 import QuotesPage from '../pages/main-pages/quotes';
 import InvoicesPage from '../pages/main-pages/invoices';
-import PurchaseOrdersPage from '../pages/main-pages/purchase-orders';
 import CustomersPage from '../pages/main-pages/customers';
 
 import JobFormPage from '../pages/main-pages/jobs/new';
 import QuoteFormPage from '../pages/main-pages/quotes/new';
 import InvoiceFormPage from '../pages/main-pages/invoices/new';
-import PurchaseOrderFormPage from '../pages/main-pages/purchase-orders/new';
 import CustomerFormPage from '../pages/main-pages/customers/new';
 
-import DoorTypesPage from '../pages/door-types';
-import DoorTypeFormPage from '../pages/door-types/new';
-import HingeTypesPage from '../pages/hinge-types';
-import HingeTypeFormPage from '../pages/hinge-types/new';
-import HandleTypesPage from '../pages/handle-types';
-import HandleTypeFormPage from '../pages/handle-types/new';
+import DoorTypesPage from '../pages/side-pages/door-types';
+import DoorTypeFormPage from '../pages/side-pages/door-types/new';
+import HingeTypesPage from '../pages/side-pages/hinge-types';
+import HingeTypeFormPage from '../pages/side-pages/hinge-types/new';
+import HandleTypesPage from '../pages/side-pages/handle-types';
+import HandleTypeFormPage from '../pages/side-pages/handle-types/new';
 
 export default function App() {
   return (
@@ -39,10 +37,6 @@ export default function App() {
             <Route path="/invoices" element={<InvoicesPage />} />
             <Route path="/invoices/new" element={<InvoiceFormPage />} />
             <Route path="/invoices/:id/edit" element={<InvoiceFormPage />} />
-
-            <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
-            <Route path="/purchase-orders/new" element={<PurchaseOrderFormPage />} />
-            <Route path="/purchase-orders/:id/edit" element={<PurchaseOrderFormPage />} />
 
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/customers/new" element={<CustomerFormPage />} />

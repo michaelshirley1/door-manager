@@ -21,12 +21,6 @@ export const Status: React.FC<StatusProps> = (props) => {
         return 'processing';
     };
 
-    const purchaseOrderStatusType = (s: string): 'good' | 'processing' | 'warn' | 'error' | 'neutral' => {
-        if (s === 'Delivered' || s === 'Ready') return 'good';
-        if (s === 'Cancelled') return 'error';
-        return 'processing';
-    };
-
     const quotesStatusType = (s: string): 'good' | 'processing' | 'warn' | 'error' | 'neutral' => {
         if (s === 'Accepted') return 'good';
         if (s === 'Declined') return 'error';
@@ -43,9 +37,6 @@ export const Status: React.FC<StatusProps> = (props) => {
                 break
             case "job":
                 typeValue = jobStatusType(content)
-                break
-            case "purchase-order":
-                typeValue = purchaseOrderStatusType(content)
                 break
             case "quotes":
                 typeValue = quotesStatusType(content)

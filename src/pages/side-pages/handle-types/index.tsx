@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HandleTypesPageProps } from './model';
-import { PageWrapper } from '../../components/page-wrapper';
-import { Table } from '../../components/table';
-import { Status } from '../../components/status';
-import { useAppContext } from '../../context/AppContext';
+import { HandleTypesPageProps, HandleType } from './model';
+import { PageWrapper } from '../../../components/page-wrapper';
+import { Table } from '../../../components/table';
+import { Status } from '../../../components/status';
+import { getHandleTypes } from './api';
 
 import './styles.scss';
 
 const HandleTypesPage: React.FC<HandleTypesPageProps> = () => {
     const navigate = useNavigate();
-    const { handleTypes } = useAppContext();
+    const [handleTypes, setHandleTypes] = useState<HandleType[]>([]);
+
+    useEffect(() => { getHandleTypes().then(setHandleTypes); }, []);
+
     return (
         <PageWrapper title="Handle Types" buttonTitle="New Handle Type" buttonAction={() => navigate('/handle-types/new')}>
             <Table

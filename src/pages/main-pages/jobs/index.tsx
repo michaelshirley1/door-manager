@@ -1,17 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { JobPageProps } from './model';
+import { JobPageProps, Job } from './model';
 import { PageWrapper } from '../../../components/page-wrapper';
 import { Table } from '../../../components/table';
 import { Status } from '../../../components/status';
-import { useAppContext } from '../../../context/AppContext';
+import { getJobs } from './api';
 
 import './styles.scss';
 
 const JobPage: React.FC<JobPageProps> = () => {
     const navigate = useNavigate();
-    const { jobs } = useAppContext();
-    
+    const [jobs, setJobs] = useState<Job[]>([]);
+
+    useEffect(() => { getJobs().then(setJobs); }, []);
+
     return (
         <PageWrapper title="Jobs" buttonTitle="New Job" buttonAction={() => navigate('/jobs/new')}>
             <Table

@@ -4,6 +4,7 @@ export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> 
     headers: headerItem[]
     rows: any[]
     onRowClick?: (row: any) => void
+    onAddClick?: () => void
 }
 
 export interface headerItem {

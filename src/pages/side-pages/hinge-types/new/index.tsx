@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FormWrapper } from '../../../components/form-wrapper';
-import { useAppContext } from '../../../context/AppContext';
+import { FormWrapper } from '../../../../components/form-wrapper';
+import { HingeType } from '../model';
+import { getHingeType, createHingeType, updateHingeType, deleteHingeType } from '../api';
 
 const HingeTypeFormPage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const { hingeTypes, addHingeType, updateHingeType, removeHingeType } = useAppContext();
-
-    const existing = id ? hingeTypes.find(h => h.id === parseInt(id)) : undefined;
-
+    const [existing, setExisting] = useState<HingeType | undefined>();
     const [form, setForm] = useState({
-        name:        existing?.name        ?? '',
-        finish:      existing?.finish      ?? '',
-        description: existing?.description ?? '',
-        isActive:    existing !== undefined ? String(existing.isActive) : 'true',
+        name:        '',
+        finish:      '',
+        description: '',
+        isActive:    'true',
     });
+
+    useEffect(() => {
+        if (id) {
+            getHingeType(parseInt(id)).then(hingeType => {
+                setExisting(hingeType);
+                setForm({
+                    name:        hingeType.name        ?? '',
+                    finish:      hingeType.finish      ?? '',
+                    description: hingeType.description ?? '',
+                    isActive:    String(hingeType.isActive),
+                });
+            });
+        }
+    }, [id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -28,8 +40,14 @@ const HingeTypeFormPage: React.FC = () => {
             isActive:    form.isActive === 'true',
             createdAt:   existing?.createdAt ?? new Date().toISOString().split('T')[0],
         };
-        existing ? updateHingeType({ ...existing, ...data }) : addHingeType(data);
-        navigate('/hinge-types');
+        const action = existing
+            ? updateHingeType(existing.id, { ...existing, ...data })
+            : createHingeType(data);
+        action.then(() => navigate('/hinge-types'));
+    };
+
+    const handleDelete = () => {
+        if (existing) deleteHingeType(existing.id).then(() => navigate('/hinge-types'));
     };
 
     return (
@@ -37,7 +55,7 @@ const HingeTypeFormPage: React.FC = () => {
             title={existing ? `Edit ${existing.name}` : 'New Hinge Type'}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/hinge-types')}
-            onDelete={existing ? () => { removeHingeType(existing.id); navigate('/hinge-types'); } : undefined}
+            onDelete={existing ? handleDelete : undefined}
         >
             <div className="form-row">
                 <div className="form-field">

@@ -1,5 +1,5 @@
 export type StatusProps = {
     content: string,
-    variation?: 'job' | 'purchase-order' | 'customer' | 'invoice' | 'quotes'
+    variation?: 'job' | 'customer' | 'invoice' | 'quotes'
     type?: string
 }

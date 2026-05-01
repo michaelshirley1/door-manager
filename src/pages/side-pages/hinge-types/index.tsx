@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HingeTypesPageProps } from './model';
-import { PageWrapper } from '../../components/page-wrapper';
-import { Table } from '../../components/table';
-import { Status } from '../../components/status';
-import { useAppContext } from '../../context/AppContext';
+import { HingeTypesPageProps, HingeType } from './model';
+import { PageWrapper } from '../../../components/page-wrapper';
+import { Table } from '../../../components/table';
+import { Status } from '../../../components/status';
+import { getHingeTypes } from './api';
 
 import './styles.scss';
 
 const HingeTypesPage: React.FC<HingeTypesPageProps> = () => {
     const navigate = useNavigate();
-    const { hingeTypes } = useAppContext();
+    const [hingeTypes, setHingeTypes] = useState<HingeType[]>([]);
+
+    useEffect(() => { getHingeTypes().then(setHingeTypes); }, []);
+
     return (
         <PageWrapper title="Hinge Types" buttonTitle="New Hinge Type" buttonAction={() => navigate('/hinge-types/new')}>
             <Table

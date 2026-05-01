@@ -1,23 +1,37 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FormWrapper } from '../../../../components/form-wrapper';
-import { useAppContext } from '../../../../context/AppContext';
+import { Customer } from '../model';
+import { getCustomer, createCustomer, updateCustomer, deleteCustomer } from '../api';
 
 const CustomerFormPage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const { customers, addCustomer, updateCustomer, removeCustomer } = useAppContext();
-
-    const existing = id ? customers.find(c => c.id === parseInt(id)) : undefined;
-
+    const [existing, setExisting] = useState<Customer | undefined>();
     const [form, setForm] = useState({
-        name:        existing?.name        ?? '',
-        companyName: existing?.companyName ?? '',
-        email:       existing?.email       ?? '',
-        phone:       existing?.phone       ?? '',
-        address:     existing?.address     ?? '',
-        notes:       existing?.notes       ?? '',
+        name:        '',
+        companyName: '',
+        email:       '',
+        phone:       '',
+        address:     '',
+        notes:       '',
     });
+
+    useEffect(() => {
+        if (id) {
+            getCustomer(parseInt(id)).then(customer => {
+                setExisting(customer);
+                setForm({
+                    name:        customer.name        ?? '',
+                    companyName: customer.companyName ?? '',
+                    email:       customer.email       ?? '',
+                    phone:       customer.phone       ?? '',
+                    address:     customer.address     ?? '',
+                    notes:       customer.notes       ?? '',
+                });
+            });
+        }
+    }, [id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -32,8 +46,14 @@ const CustomerFormPage: React.FC = () => {
             notes:       form.notes || null,
             createdAt:   existing?.createdAt ?? new Date().toISOString().split('T')[0],
         };
-        existing ? updateCustomer({ ...existing, ...data }) : addCustomer(data);
-        navigate('/customers');
+        const action = existing
+            ? updateCustomer(existing.id, { ...existing, ...data })
+            : createCustomer(data);
+        action.then(() => navigate('/customers'));
+    };
+
+    const handleDelete = () => {
+        if (existing) deleteCustomer(existing.id).then(() => navigate('/customers'));
     };
 
     return (
@@ -41,7 +61,7 @@ const CustomerFormPage: React.FC = () => {
             title={existing ? `Edit ${existing.name}` : 'New Customer'}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/customers')}
-            onDelete={existing ? () => { removeCustomer(existing.id); navigate('/customers'); } : undefined}
+            onDelete={existing ? handleDelete : undefined}
         >
             <div className="form-row">
                 <div className="form-field">

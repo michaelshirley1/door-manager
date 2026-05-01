@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { QuotesPageProps } from './model';
+import { QuotesPageProps, Quote } from './model';
 import { PageWrapper } from '../../../components/page-wrapper';
 import { Table } from '../../../components/table';
 import { Status } from '../../../components/status';
-import { useAppContext } from '../../../context/AppContext';
+import { getQuotes } from './api';
 
 import './styles.scss';
 
 const QuotesPage: React.FC<QuotesPageProps> = () => {
     const navigate = useNavigate();
-    const { quotes } = useAppContext();
+    const [quotes, setQuotes] = useState<Quote[]>([]);
+
+    useEffect(() => { getQuotes().then(setQuotes); }, []);
+
     return (
         <PageWrapper title="Quotes" buttonTitle="New Quote" buttonAction={() => navigate('/quotes/new')}>
             <Table

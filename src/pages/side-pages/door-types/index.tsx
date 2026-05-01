@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DoorTypesPageProps } from './model';
-import { PageWrapper } from '../../components/page-wrapper';
-import { Table } from '../../components/table';
-import { Status } from '../../components/status';
-import { useAppContext } from '../../context/AppContext';
+import { DoorTypesPageProps, DoorType } from './model';
+import { PageWrapper } from '../../../components/page-wrapper';
+import { Table } from '../../../components/table';
+import { Status } from '../../../components/status';
+import { getDoorTypes } from './api';
 
 import './styles.scss';
 
 const DoorTypesPage: React.FC<DoorTypesPageProps> = () => {
     const navigate = useNavigate();
-    const { doorTypes } = useAppContext();
+    const [doorTypes, setDoorTypes] = useState<DoorType[]>([]);
+
+    useEffect(() => { getDoorTypes().then(setDoorTypes); }, []);
+
     return (
         <PageWrapper title="Door Types" buttonTitle="New Door Type" buttonAction={() => navigate('/door-types/new')}>
             <Table

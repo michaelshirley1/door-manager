@@ -1,25 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FormWrapper } from '../../../../components/form-wrapper';
-import { useAppContext } from '../../../../context/AppContext';
+import { Quote } from '../model';
+import { getQuote, createQuote, updateQuote, deleteQuote } from '../api';
+import { Customer } from '../../customers/model';
+import { getCustomers } from '../../customers/api';
 
 const QuoteFormPage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const { quotes, customers, addQuote, updateQuote, removeQuote } = useAppContext();
-
-    const existing = id ? quotes.find(q => q.id === parseInt(id)) : undefined;
-
+    const [existing, setExisting] = useState<Quote | undefined>();
+    const [customers, setCustomers] = useState<Customer[]>([]);
     const [form, setForm] = useState({
-        quoteNumber:  existing?.quoteNumber  ?? '',
-        customerId:   existing?.customerId?.toString() ?? '',
-        customerName: existing?.customerName ?? '',
-        status:       existing?.status       ?? 'Draft',
-        totalAmount:  existing?.totalAmount?.toString() ?? '',
-        validUntil:   existing?.validUntil   ?? '',
-        createdBy:    existing?.createdBy    ?? '',
-        notes:        existing?.notes        ?? '',
+        quoteNumber:  '',
+        customerId:   '',
+        customerName: '',
+        status:       'Draft',
+        totalAmount:  '',
+        validUntil:   '',
+        createdBy:    '',
+        notes:        '',
     });
+
+    useEffect(() => {
+        getCustomers().then(setCustomers);
+        if (id) {
+            getQuote(parseInt(id)).then(quote => {
+                setExisting(quote);
+                setForm({
+                    quoteNumber:  quote.quoteNumber  ?? '',
+                    customerId:   quote.customerId?.toString() ?? '',
+                    customerName: quote.customerName ?? '',
+                    status:       quote.status       ?? 'Draft',
+                    totalAmount:  quote.totalAmount?.toString() ?? '',
+                    validUntil:   quote.validUntil   ?? '',
+                    createdBy:    quote.createdBy    ?? '',
+                    notes:        quote.notes        ?? '',
+                });
+            });
+        }
+    }, [id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -40,8 +60,14 @@ const QuoteFormPage: React.FC = () => {
             createdBy:    form.createdBy || null,
             notes:        form.notes || null,
         };
-        existing ? updateQuote({ ...existing, ...data }) : addQuote(data);
-        navigate('/quotes');
+        const action = existing
+            ? updateQuote(existing.id, { ...existing, ...data })
+            : createQuote(data);
+        action.then(() => navigate('/quotes'));
+    };
+
+    const handleDelete = () => {
+        if (existing) deleteQuote(existing.id).then(() => navigate('/quotes'));
     };
 
     return (
@@ -49,7 +75,7 @@ const QuoteFormPage: React.FC = () => {
             title={existing ? `Edit ${existing.quoteNumber}` : 'New Quote'}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/quotes')}
-            onDelete={existing ? () => { removeQuote(existing.id); navigate('/quotes'); } : undefined}
+            onDelete={existing ? handleDelete : undefined}
         >
             <div className="form-row">
                 <div className="form-field">

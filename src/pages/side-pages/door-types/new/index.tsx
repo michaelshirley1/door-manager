@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FormWrapper } from '../../../components/form-wrapper';
-import { useAppContext } from '../../../context/AppContext';
+import { FormWrapper } from '../../../../components/form-wrapper';
+import { DoorType } from '../model';
+import { getDoorType, createDoorType, updateDoorType, deleteDoorType } from '../api';
 
 const DoorTypeFormPage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const { doorTypes, addDoorType, updateDoorType, removeDoorType } = useAppContext();
-
-    const existing = id ? doorTypes.find(d => d.id === parseInt(id)) : undefined;
-
+    const [existing, setExisting] = useState<DoorType | undefined>();
     const [form, setForm] = useState({
-        name:        existing?.name        ?? '',
-        material:    existing?.material    ?? '',
-        description: existing?.description ?? '',
-        isActive:    existing !== undefined ? String(existing.isActive) : 'true',
+        name:        '',
+        material:    '',
+        description: '',
+        isActive:    'true',
     });
+
+    useEffect(() => {
+        if (id) {
+            getDoorType(parseInt(id)).then(doorType => {
+                setExisting(doorType);
+                setForm({
+                    name:        doorType.name        ?? '',
+                    material:    doorType.material    ?? '',
+                    description: doorType.description ?? '',
+                    isActive:    String(doorType.isActive),
+                });
+            });
+        }
+    }, [id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -28,8 +40,14 @@ const DoorTypeFormPage: React.FC = () => {
             isActive:    form.isActive === 'true',
             createdAt:   existing?.createdAt ?? new Date().toISOString().split('T')[0],
         };
-        existing ? updateDoorType({ ...existing, ...data }) : addDoorType(data);
-        navigate('/door-types');
+        const action = existing
+            ? updateDoorType(existing.id, { ...existing, ...data })
+            : createDoorType(data);
+        action.then(() => navigate('/door-types'));
+    };
+
+    const handleDelete = () => {
+        if (existing) deleteDoorType(existing.id).then(() => navigate('/door-types'));
     };
 
     return (
@@ -37,7 +55,7 @@ const DoorTypeFormPage: React.FC = () => {
             title={existing ? `Edit ${existing.name}` : 'New Door Type'}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/door-types')}
-            onDelete={existing ? () => { removeDoorType(existing.id); navigate('/door-types'); } : undefined}
+            onDelete={existing ? handleDelete : undefined}
         >
             <div className="form-row">
                 <div className="form-field">

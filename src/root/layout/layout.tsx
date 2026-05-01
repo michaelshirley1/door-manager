@@ -16,9 +16,8 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="layout-tabs">
                     <button onClick={() => navigate("/")}>Home</button>
                     <button onClick={() => navigate("/customers")}>Customers</button>
-                    <button onClick={() => navigate("/quotes")}>Quotes</button>
-                    <button onClick={() => navigate("/purchase-orders")}>Purchase Orders</button>
                     <button onClick={() => navigate("/jobs")}>Jobs</button>
+                    <button onClick={() => navigate("/quotes")}>Quotes</button>
                     <button onClick={() => navigate("/invoices")}>Invoices</button>
                     <div className="nav-divider" />
                     <button onClick={() => navigate("/door-types")}>Door Types</button>

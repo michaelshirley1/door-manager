@@ -1,22 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FormWrapper } from '../../../components/form-wrapper';
-import { useAppContext } from '../../../context/AppContext';
+import { FormWrapper } from '../../../../components/form-wrapper';
+import { HandleType } from '../model';
+import { getHandleType, createHandleType, updateHandleType, deleteHandleType } from '../api';
 
 const HandleTypeFormPage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const { handleTypes, addHandleType, updateHandleType, removeHandleType } = useAppContext();
-
-    const existing = id ? handleTypes.find(h => h.id === parseInt(id)) : undefined;
-
+    const [existing, setExisting] = useState<HandleType | undefined>();
     const [form, setForm] = useState({
-        name:        existing?.name        ?? '',
-        finish:      existing?.finish      ?? '',
-        mechanism:   existing?.mechanism   ?? '',
-        description: existing?.description ?? '',
-        isActive:    existing !== undefined ? String(existing.isActive) : 'true',
+        name:        '',
+        finish:      '',
+        mechanism:   '',
+        description: '',
+        isActive:    'true',
     });
+
+    useEffect(() => {
+        if (id) {
+            getHandleType(parseInt(id)).then(handleType => {
+                setExisting(handleType);
+                setForm({
+                    name:        handleType.name        ?? '',
+                    finish:      handleType.finish      ?? '',
+                    mechanism:   handleType.mechanism   ?? '',
+                    description: handleType.description ?? '',
+                    isActive:    String(handleType.isActive),
+                });
+            });
+        }
+    }, [id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -30,8 +43,14 @@ const HandleTypeFormPage: React.FC = () => {
             isActive:    form.isActive === 'true',
             createdAt:   existing?.createdAt ?? new Date().toISOString().split('T')[0],
         };
-        existing ? updateHandleType({ ...existing, ...data }) : addHandleType(data);
-        navigate('/handle-types');
+        const action = existing
+            ? updateHandleType(existing.id, { ...existing, ...data })
+            : createHandleType(data);
+        action.then(() => navigate('/handle-types'));
+    };
+
+    const handleDelete = () => {
+        if (existing) deleteHandleType(existing.id).then(() => navigate('/handle-types'));
     };
 
     return (
@@ -39,7 +58,7 @@ const HandleTypeFormPage: React.FC = () => {
             title={existing ? `Edit ${existing.name}` : 'New Handle Type'}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/handle-types')}
-            onDelete={existing ? () => { removeHandleType(existing.id); navigate('/handle-types'); } : undefined}
+            onDelete={existing ? handleDelete : undefined}
         >
             <div className="form-row">
                 <div className="form-field">

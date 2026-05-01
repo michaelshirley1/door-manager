@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CustomersPageProps } from './model';
+import { CustomersPageProps, Customer } from './model';
 import { PageWrapper } from '../../../components/page-wrapper';
 import { Table } from '../../../components/table';
-import { useAppContext } from '../../../context/AppContext';
+import { getCustomers } from './api';
 
 import './styles.scss';
 
 const CustomersPage: React.FC<CustomersPageProps> = () => {
     const navigate = useNavigate();
-    const { customers } = useAppContext();
-    
+    const [customers, setCustomers] = useState<Customer[]>([]);
+
+    useEffect(() => { getCustomers().then(setCustomers); }, []);
+
     return (
         <PageWrapper title="Customers" buttonTitle="New Customer" buttonAction={() => navigate('/customers/new')}>
             <Table

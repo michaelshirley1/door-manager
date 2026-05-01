@@ -1,27 +1,47 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HomePageProps } from './model';
 import { Table } from '../../components/table';
 import { Status } from '../../components/status';
-import { useAppContext } from '../../context/AppContext';
+import { Job } from '../main-pages/jobs/model';
+import { Invoice } from '../main-pages/invoices/model';
+import { getJobs } from '../main-pages/jobs/api';
+import { getInvoices } from '../main-pages/invoices/api';
+import { getQuotes } from '../main-pages/quotes/api';
 
 import './styles.scss';
 
 export const HomePage: React.FC<HomePageProps> = () => {
     const navigate = useNavigate();
-    const { jobs, quotes, invoices } = useAppContext();
+    const [jobs, setJobs] = useState<Job[]>([]);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [quoteCount, setQuoteCount] = useState(0);
+
+    useEffect(() => {
+        getJobs().then(setJobs);
+        getInvoices().then(setInvoices);
+        getQuotes().then(q => setQuoteCount(q.length));
+    }, []);
 
     const activeJobs = jobs.filter(j => j.status !== 'Completed' && j.status !== 'Cancelled');
     const activeInvoices = invoices.filter(i => i.status !== 'Paid' && i.status !== 'Void' && i.status !== 'Draft');
 
     const summaryCards = [
         { label: 'Active Jobs', value: jobs.length, route: '/jobs' },
-        { label: 'Active Quotes', value: quotes.length, route: '/quotes' },
+        { label: 'Active Quotes', value: quoteCount, route: '/quotes' },
         { label: 'Active Invoices', value: invoices.length, route: '/invoices' },
     ];
 
     return (
         <div className="home-page">
+            <div className="summary-cards">
+                {summaryCards.map((card) => (
+                    <div key={card.label} className="summary-card" onClick={() => navigate(card.route)}>
+                        <span className="summary-card-label">{card.label}</span>
+                        <span className="summary-card-value">{card.value}</span>
+                    </div>
+                ))}
+            </div>
             <div className="home-tables">
                 <div className="home-table-section">
                     <h2>Active Jobs</h2>
@@ -52,15 +72,6 @@ export const HomePage: React.FC<HomePageProps> = () => {
                         onRowClick={(row) => navigate(`/invoices/${row.id}/edit`)}
                     />
                 </div>
-            </div>
-
-            <div className="summary-cards">
-                {summaryCards.map((card) => (
-                    <div key={card.label} className="summary-card" onClick={() => navigate(card.route)}>
-                        <span className="summary-card-label">{card.label}</span>
-                        <span className="summary-card-value">{card.value}</span>
-                    </div>
-                ))}
             </div>
         </div>
     );

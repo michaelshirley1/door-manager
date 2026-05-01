@@ -1,26 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FormWrapper } from '../../../../components/form-wrapper';
-import { useAppContext } from '../../../../context/AppContext';
+import { Table } from '../../../../components/table';
+import { Job, OrderItem } from '../model';
+import { getJob, createJob, updateJob, deleteJob } from '../api';
+import { Customer } from '../../customers/model';
+import { getCustomers } from '../../customers/api';
+
+const blankItem = (): OrderItem => ({
+    id: 0,
+    itemType: 'Door',
+    drilling: null,
+    quantity: null,
+    sortOrder: null,
+    createdAt: null,
+});
 
 const JobFormPage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const { jobs, customers, addJob, updateJob, removeJob } = useAppContext();
-
-    const existing = id ? jobs.find(j => j.id === parseInt(id)) : undefined;
-
+    const [existing, setExisting] = useState<Job | undefined>();
+    const [customers, setCustomers] = useState<Customer[]>([]);
     const [form, setForm] = useState({
-        jobNumber:     existing?.jobNumber     ?? '',
-        customerId:    existing?.customerId?.toString() ?? '',
-        customerName:  existing?.customerName  ?? '',
-        status:        existing?.status        ?? 'Scheduled',
-        siteAddress:   existing?.siteAddress   ?? '',
-        assignedTo:    existing?.assignedTo    ?? '',
-        scheduledDate: existing?.scheduledDate ?? '',
-        completedDate: existing?.completedDate ?? '',
-        notes:         existing?.notes         ?? '',
+        jobNumber:     '',
+        customerId:    '',
+        customerName:  '',
+        status:        'Scheduled',
+        siteAddress:   '',
+        assignedTo:    '',
+        scheduledDate: '',
+        completedDate: '',
+        notes:         '',
+        items:         [] as OrderItem[],
     });
+
+    useEffect(() => {
+        getCustomers().then(setCustomers);
+        if (id) {
+            getJob(parseInt(id)).then(job => {
+                setExisting(job);
+                setForm({
+                    jobNumber:     job.jobNumber     ?? '',
+                    customerId:    job.customerId?.toString() ?? '',
+                    customerName:  job.customerName  ?? '',
+                    status:        job.status        ?? 'Scheduled',
+                    siteAddress:   job.siteAddress   ?? '',
+                    assignedTo:    job.assignedTo    ?? '',
+                    scheduledDate: job.scheduledDate ?? '',
+                    completedDate: job.completedDate ?? '',
+                    notes:         job.notes         ?? '',
+                    items:         job.items         ?? [],
+                });
+            });
+        }
+    }, [id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -32,19 +65,26 @@ const JobFormPage: React.FC = () => {
 
     const handleSubmit = () => {
         const data = {
-            jobNumber:      form.jobNumber || null,
-            customerId:     parseInt(form.customerId) || 0,
-            customerName:   form.customerName,
-            status:         form.status,
-            siteAddress:    form.siteAddress || null,
-            assignedTo:     form.assignedTo || null,
-            scheduledDate:  form.scheduledDate || null,
-            completedDate:  form.completedDate || null,
+            jobNumber:       form.jobNumber || null,
+            customerId:      parseInt(form.customerId) || 0,
+            customerName:    form.customerName,
+            status:          form.status,
+            siteAddress:     form.siteAddress || null,
+            assignedTo:      form.assignedTo || null,
+            scheduledDate:   form.scheduledDate || null,
+            completedDate:   form.completedDate || null,
             purchaseOrderId: existing?.purchaseOrderId ?? null,
-            notes:          form.notes || null,
+            notes:           form.notes || null,
+            items:           form.items,
         };
-        existing ? updateJob({ ...existing, ...data }) : addJob(data);
-        navigate('/jobs');
+        const action = existing
+            ? updateJob(existing.id, { ...existing, ...data })
+            : createJob(data);
+        action.then(() => navigate('/jobs'));
+    };
+
+    const handleDelete = () => {
+        if (existing) deleteJob(existing.id).then(() => navigate('/jobs'));
     };
 
     return (
@@ -52,7 +92,7 @@ const JobFormPage: React.FC = () => {
             title={existing ? `Edit ${existing.jobNumber ?? 'Job'}` : 'New Job'}
             onSubmit={handleSubmit}
             onCancel={() => navigate('/jobs')}
-            onDelete={existing ? () => { removeJob(existing.id); navigate('/jobs'); } : undefined}
+            onDelete={existing ? handleDelete : undefined}
         >
             <div className="form-row">
                 <div className="form-field">
@@ -69,15 +109,15 @@ const JobFormPage: React.FC = () => {
                         <option value="Cancelled">Cancelled</option>
                     </select>
                 </div>
-            </div>
-            <div className="form-field">
-                <label>Customer</label>
-                <select name="customerId" value={form.customerId} onChange={handleCustomerChange}>
-                    <option value="">Select customer...</option>
-                    {customers.map(c => (
-                        <option key={c.id} value={c.id}>{c.companyName ?? c.name}</option>
-                    ))}
-                </select>
+                <div className="form-field">
+                    <label>Customer</label>
+                    <select name="customerId" value={form.customerId} onChange={handleCustomerChange}>
+                        <option value="">Select customer...</option>
+                        {customers.map(c => (
+                            <option key={c.id} value={c.id}>{c.companyName ?? c.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
             <div className="form-field">
                 <label>Site Address</label>
@@ -92,14 +132,30 @@ const JobFormPage: React.FC = () => {
                     <label>Scheduled Date</label>
                     <input type="date" name="scheduledDate" value={form.scheduledDate} onChange={handleChange} />
                 </div>
-            </div>
-            <div className="form-field">
-                <label>Completed Date</label>
-                <input type="date" name="completedDate" value={form.completedDate} onChange={handleChange} />
+                <div className="form-field">
+                    <label>Completed Date</label>
+                    <input type="date" name="completedDate" value={form.completedDate} onChange={handleChange} />
+                </div>
             </div>
             <div className="form-field">
                 <label>Notes</label>
                 <textarea name="notes" value={form.notes} onChange={handleChange} />
+            </div>
+            <div className="form-field">
+                <label>Items</label>
+                <Table
+                    headers={[
+                        { id: 'itemType',     title: 'Type' },
+                        { id: 'room',         title: 'Room',     render: (v) => v ?? '—' },
+                        { id: 'assembly',     title: 'Assembly', render: (v) => v ?? '—' },
+                        { id: 'heightMm',     title: 'H (mm)',   render: (v) => v ?? '—' },
+                        { id: 'widthMm',      title: 'W (mm)',   render: (v) => v ?? '—' },
+                        { id: 'colourFinish', title: 'Finish',   render: (v) => v ?? '—' },
+                        { id: 'quantity',     title: 'Qty',      render: (v) => v ?? '—' },
+                    ]}
+                    rows={form.items}
+                    onAddClick={() => setForm(prev => ({ ...prev, items: [...prev.items, blankItem()] }))}
+                />
             </div>
         </FormWrapper>
     );
