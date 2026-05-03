@@ -1,4 +1,4 @@
-# DoorStop — Door Company Interface
+# TheDoorShop — Door Company Interface
 
 An internal management dashboard for a door company, built with React, TypeScript, and a .NET backend
 
@@ -12,16 +12,6 @@ Internal dashboard supporting:
 - **Quotes** — manage customer quotes through their lifecycle
 - **Customers** — customer records and contact info
 - **Inventory** — doors, cavity sliders, and hardware catalogues
-- **Status badges** — `good | processing | warn | error` across all views
-
-## Architecture
-
-```
-PageWrapper        — consistent page header with title and action button
-Table              — generic tabular component, accepts headers + rows
-Status             — coloured badge component for record states
-Layout             — shell with sidebar navigation
-```
 
 ## Project structure
 
