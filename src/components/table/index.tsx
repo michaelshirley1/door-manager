@@ -22,7 +22,7 @@ export const Table: React.FC<TableProps> = (props) => {
                         <tr key={rowIndex} onClick={() => onRowClick?.(row, rowIndex)}>
                             {headers.map((header) => (
                                 <td key={header.id}>
-                                    {header.render ? header.render(row[header.id], row) : row[header.id]}
+                                    {header.render ? header.render(row[header.id], row, rowIndex) : row[header.id]}
                                 </td>
                             ))}
                         </tr>

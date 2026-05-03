@@ -70,6 +70,12 @@
         justify-content: space-between;
         align-items: center;
         margin-top: 24px;
+        gap: 12px;
+
+        .form-actions-extra {
+            display: flex;
+            gap: 12px;
+        }
 
         .form-actions-right {
             display: flex;

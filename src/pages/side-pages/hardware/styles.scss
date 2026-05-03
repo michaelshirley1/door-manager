@@ -1,0 +1,162 @@
+.hw-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.hw-tab {
+    padding: 8px 20px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+
+    &:hover {
+        color: #333;
+    }
+
+    &.active {
+        color: #1a1a1a;
+        font-weight: 600;
+        border-bottom-color: #1a1a1a;
+    }
+}
+
+.hw-section {
+    // no extra margin needed
+}
+
+.hw-filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.hw-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #666;
+    }
+
+    select {
+        padding: 6px 10px;
+        border: 1px solid #d0d0d0;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 160px;
+        background: #fff;
+    }
+}
+
+.hw-clear {
+    padding: 6px 14px;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    align-self: flex-end;
+
+    &:hover {
+        background: #f5f5f5;
+    }
+}
+
+.hw-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.hw-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hw-card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.hw-card-detail {
+    font-size: 12px;
+    color: #666;
+}
+
+.hw-card-price {
+    margin-top: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.hw-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+    thead tr {
+        background: #f4f5f7;
+    }
+
+    th {
+        padding: 10px 14px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #555;
+        letter-spacing: 0.04em;
+    }
+
+    td {
+        padding: 10px 14px;
+        font-size: 14px;
+        border-top: 1px solid #f0f0f0;
+        color: #333;
+    }
+
+    tbody tr:hover {
+        background: #fafafa;
+    }
+}
+
+.hw-row {
+    cursor: pointer;
+}
+
+.hw-empty {
+    color: #999;
+    padding: 32px 0;
+    text-align: center;
+}
+
+.hw-empty-cell {
+    text-align: center;
+    color: #999;
+    padding: 32px !important;
+}

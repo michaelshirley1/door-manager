@@ -1,13 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { FormWrapper } from '../../../../components/form-wrapper';
 import { Invoice } from '../model';
 import { getInvoice, createInvoice, updateInvoice, deleteInvoice } from '../api';
 import { Job } from '../../jobs/model';
 import { getJobs } from '../../jobs/api';
 
+interface QuoteConversionState {
+    fromQuote?: {
+        quoteId: number;
+        quoteNumber: string;
+        customerName: string;
+        subtotal: number;
+        notes: string | null;
+    };
+}
+
 const InvoiceFormPage: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { id } = useParams<{ id: string }>();
     const [existing, setExisting] = useState<Invoice | undefined>();
     const [jobs, setJobs] = useState<Job[]>([]);
@@ -15,6 +26,8 @@ const InvoiceFormPage: React.FC = () => {
         invoiceNumber: '',
         jobId:         '',
         jobNumber:     '',
+        quoteId:       '',
+        quoteNumber:   '',
         status:        'Draft',
         subtotal:      '',
         taxRate:       '0.15',
@@ -24,6 +37,20 @@ const InvoiceFormPage: React.FC = () => {
 
     useEffect(() => {
         getJobs().then(setJobs);
+
+        const state = location.state as QuoteConversionState | null;
+        if (state?.fromQuote) {
+            const q = state.fromQuote;
+            setForm(prev => ({
+                ...prev,
+                quoteId:     q.quoteId.toString(),
+                quoteNumber: q.quoteNumber,
+                invoiceNumber: `INV-${q.quoteNumber.replace(/^QTE-/, '')}`,
+                subtotal:    q.subtotal.toFixed(2),
+                notes:       q.notes ?? '',
+            }));
+        }
+
         if (id) {
             getInvoice(parseInt(id)).then(invoice => {
                 setExisting(invoice);
@@ -31,6 +58,8 @@ const InvoiceFormPage: React.FC = () => {
                     invoiceNumber: invoice.invoiceNumber ?? '',
                     jobId:         invoice.jobId?.toString() ?? '',
                     jobNumber:     invoice.jobNumber ?? '',
+                    quoteId:       invoice.quoteId?.toString() ?? '',
+                    quoteNumber:   invoice.quoteNumber ?? '',
                     status:        invoice.status ?? 'Draft',
                     subtotal:      invoice.subtotal?.toString() ?? '',
                     taxRate:       invoice.taxRate?.toString() ?? '0.15',
@@ -39,7 +68,7 @@ const InvoiceFormPage: React.FC = () => {
                 });
             });
         }
-    }, [id]);
+    }, [id, location.state]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -49,19 +78,23 @@ const InvoiceFormPage: React.FC = () => {
         setForm(prev => ({ ...prev, jobId: e.target.value, jobNumber: j?.jobNumber ?? '' }));
     };
 
+    const subtotal = parseFloat(form.subtotal) || 0;
+    const taxRate = parseFloat(form.taxRate) || 0.15;
+    const taxAmount = Math.round(subtotal * taxRate * 100) / 100;
+    const total = Math.round((subtotal + taxAmount) * 100) / 100;
+
     const handleSubmit = () => {
-        const subtotal = parseFloat(form.subtotal) || 0;
-        const taxRate = parseFloat(form.taxRate) || 0.15;
-        const taxAmount = Math.round(subtotal * taxRate * 100) / 100;
         const data = {
             invoiceNumber: form.invoiceNumber,
-            jobId:         parseInt(form.jobId) || 0,
-            jobNumber:     form.jobNumber,
+            jobId:         parseInt(form.jobId) || null,
+            jobNumber:     form.jobNumber || null,
+            quoteId:       parseInt(form.quoteId) || null,
+            quoteNumber:   form.quoteNumber || null,
             status:        form.status,
             subtotal,
             taxRate,
             taxAmount,
-            total:         Math.round((subtotal + taxAmount) * 100) / 100,
+            total,
             amountPaid:    existing?.amountPaid ?? 0,
             dueDate:       form.dueDate || null,
             notes:         form.notes || null,
@@ -101,29 +134,44 @@ const InvoiceFormPage: React.FC = () => {
                     </select>
                 </div>
             </div>
-            <div className="form-field">
-                <label>Job</label>
-                <select name="jobId" value={form.jobId} onChange={handleJobChange}>
-                    <option value="">Select job...</option>
-                    {jobs.map(j => (
-                        <option key={j.id} value={j.id}>{j.jobNumber ?? `Job #${j.id}`} — {j.customerName}</option>
-                    ))}
-                </select>
-            </div>
+
+            {form.quoteNumber ? (
+                <div className="form-field">
+                    <label>From Quote</label>
+                    <input value={form.quoteNumber} readOnly style={{ background: '#f0f0f0', color: '#666' }} />
+                </div>
+            ) : (
+                <div className="form-field">
+                    <label>Job</label>
+                    <select name="jobId" value={form.jobId} onChange={handleJobChange}>
+                        <option value="">Select job...</option>
+                        {jobs.map(j => (
+                            <option key={j.id} value={j.id}>{j.jobNumber ?? `Job #${j.id}`} — {j.customerName}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
             <div className="form-row">
                 <div className="form-field">
                     <label>Subtotal (excl. GST)</label>
                     <input type="number" name="subtotal" value={form.subtotal} onChange={handleChange} placeholder="0.00" />
                 </div>
                 <div className="form-field">
-                    <label>Tax Rate</label>
+                    <label>GST Rate</label>
                     <input type="number" name="taxRate" value={form.taxRate} onChange={handleChange} step="0.01" placeholder="0.15" />
                 </div>
+                <div className="form-field">
+                    <label>Total (incl. GST)</label>
+                    <input value={`$${total.toFixed(2)}`} readOnly style={{ background: '#f0f0f0', fontWeight: 600 }} />
+                </div>
             </div>
+
             <div className="form-field">
-                <label>Due Date</label>
+                <label>Pay By Date</label>
                 <input type="date" name="dueDate" value={form.dueDate} onChange={handleChange} />
             </div>
+
             <div className="form-field">
                 <label>Notes</label>
                 <textarea name="notes" value={form.notes} onChange={handleChange} />

@@ -17,15 +17,18 @@ export const Status: React.FC<StatusProps> = (props) => {
     const invoiceStatusType = (s: string): 'good' | 'processing' | 'warn' | 'error' | 'neutral' => {
         if (s === 'Paid') return 'good';
         if (s === 'Overdue' || s === 'Void') return 'error';
+        if (s === 'Invoice') return 'processing';
         if (s === 'Draft') return 'neutral';
         return 'processing';
     };
 
     const quotesStatusType = (s: string): 'good' | 'processing' | 'warn' | 'error' | 'neutral' => {
         if (s === 'Accepted') return 'good';
+        if (s === 'Order' || s === 'Dispatched') return 'processing';
+        if (s === 'Delivered') return 'good';
         if (s === 'Declined') return 'error';
         if (s === 'Expired') return 'warn';
-        if (s === 'Draft') return 'neutral';
+        if (s === 'Draft' || s === 'Nullified') return 'neutral';
         return 'processing';
     };
 

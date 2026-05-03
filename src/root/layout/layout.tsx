@@ -18,11 +18,10 @@ export default function Layout({ children }: LayoutProps) {
                     <button onClick={() => navigate("/customers")}>Customers</button>
                     <button onClick={() => navigate("/jobs")}>Jobs</button>
                     <button onClick={() => navigate("/quotes")}>Quotes</button>
-                    <button onClick={() => navigate("/invoices")}>Invoices</button>
                     <div className="nav-divider" />
-                    <button onClick={() => navigate("/door-types")}>Door Types</button>
-                    <button onClick={() => navigate("/hinge-types")}>Hinge Types</button>
-                    <button onClick={() => navigate("/handle-types")}>Handle Types</button>
+                    <button onClick={() => navigate("/doors")}>Doors</button>
+                    <button onClick={() => navigate("/cavity-sliders")}>Cavity Sliders</button>
+                    <button onClick={() => navigate("/hardware")}>Hardware</button>
                 </div>
             </div>
             <div className="layout-content">

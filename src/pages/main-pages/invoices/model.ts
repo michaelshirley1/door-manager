@@ -3,8 +3,10 @@ export interface InvoicesPageProps {}
 export interface Invoice {
     id: number;
     invoiceNumber: string;
-    jobId: number;
-    jobNumber: string;
+    jobId: number | null;
+    jobNumber: string | null;
+    quoteId: number | null;
+    quoteNumber: string | null;
     status: string;
     subtotal: number;
     taxRate: number;

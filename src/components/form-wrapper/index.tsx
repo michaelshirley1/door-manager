@@ -4,7 +4,7 @@ import { FormWrapperProps } from './model';
 import './styles.scss';
 import Button from '../button';
 
-export const FormWrapper: React.FC<FormWrapperProps> = ({ title, onSubmit, onCancel, onDelete, children }) => {
+export const FormWrapper: React.FC<FormWrapperProps> = ({ title, onSubmit, onCancel, onDelete, extraActions, children }) => {
     return (
         <div className="form-wrapper">
             <div className="form-header">
@@ -16,6 +16,9 @@ export const FormWrapper: React.FC<FormWrapperProps> = ({ title, onSubmit, onCan
             <div className="form-actions">
                 {onDelete && (
                     <Button variant="danger" type="button" onClick={onDelete}>Delete</Button>
+                )}
+                {extraActions && (
+                    <div className="form-actions-extra">{extraActions}</div>
                 )}
                 <div className="form-actions-right">
                     <Button variant='secondary' type="button" onClick={onCancel}>Cancel</Button>

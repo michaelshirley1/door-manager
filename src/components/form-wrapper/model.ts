@@ -3,5 +3,6 @@ export interface FormWrapperProps {
     onSubmit: () => void;
     onCancel: () => void;
     onDelete?: () => void;
+    extraActions?: React.ReactNode;
     children: React.ReactNode;
 }

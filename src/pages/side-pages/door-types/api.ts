@@ -1,5 +1,5 @@
 import client from '../../../api/client';
-import { DoorType } from './model';
+import { DoorType, DoorPricingEntry } from './model';
 
 export const getDoorTypes = () =>
     client.get<DoorType[]>('/door-type').then(r => r.data);
@@ -15,3 +15,12 @@ export const updateDoorType = (id: number, data: DoorType) =>
 
 export const deleteDoorType = (id: number) =>
     client.delete(`/door-type/${id}`);
+
+export const getDoorTypePrices = (doorTypeId: number) =>
+    client.get<DoorPricingEntry[]>(`/door-type/${doorTypeId}/prices`).then(r => r.data);
+
+export const createDoorTypePrice = (doorTypeId: number, data: { heightMm: number; widthMm: number; price: number }) =>
+    client.post<DoorPricingEntry>(`/door-type/${doorTypeId}/prices`, { ...data, doorTypeId }).then(r => r.data);
+
+export const deleteDoorTypePrice = (doorTypeId: number, entryId: number) =>
+    client.delete(`/door-type/${doorTypeId}/prices/${entryId}`);

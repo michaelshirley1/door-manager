@@ -5,20 +5,15 @@ import { HomePage } from '../pages/home';
 
 import JobPage from '../pages/main-pages/jobs';
 import QuotesPage from '../pages/main-pages/quotes';
-import InvoicesPage from '../pages/main-pages/invoices';
 import CustomersPage from '../pages/main-pages/customers';
 
 import JobFormPage from '../pages/main-pages/jobs/new';
 import QuoteFormPage from '../pages/main-pages/quotes/new';
-import InvoiceFormPage from '../pages/main-pages/invoices/new';
 import CustomerFormPage from '../pages/main-pages/customers/new';
 
-import DoorTypesPage from '../pages/side-pages/door-types';
-import DoorTypeFormPage from '../pages/side-pages/door-types/new';
-import HingeTypesPage from '../pages/side-pages/hinge-types';
-import HingeTypeFormPage from '../pages/side-pages/hinge-types/new';
-import HandleTypesPage from '../pages/side-pages/handle-types';
-import HandleTypeFormPage from '../pages/side-pages/handle-types/new';
+import DoorsPage from '../pages/side-pages/doors';
+import CavitySlidersPage from '../pages/side-pages/cavity-sliders';
+import HardwarePage from '../pages/side-pages/hardware';
 
 export default function App() {
   return (
@@ -34,25 +29,13 @@ export default function App() {
             <Route path="/quotes/new" element={<QuoteFormPage />} />
             <Route path="/quotes/:id/edit" element={<QuoteFormPage />} />
 
-            <Route path="/invoices" element={<InvoicesPage />} />
-            <Route path="/invoices/new" element={<InvoiceFormPage />} />
-            <Route path="/invoices/:id/edit" element={<InvoiceFormPage />} />
-
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/customers/new" element={<CustomerFormPage />} />
             <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
 
-            <Route path="/door-types" element={<DoorTypesPage />} />
-            <Route path="/door-types/new" element={<DoorTypeFormPage />} />
-            <Route path="/door-types/:id/edit" element={<DoorTypeFormPage />} />
-
-            <Route path="/hinge-types" element={<HingeTypesPage />} />
-            <Route path="/hinge-types/new" element={<HingeTypeFormPage />} />
-            <Route path="/hinge-types/:id/edit" element={<HingeTypeFormPage />} />
-
-            <Route path="/handle-types" element={<HandleTypesPage />} />
-            <Route path="/handle-types/new" element={<HandleTypeFormPage />} />
-            <Route path="/handle-types/:id/edit" element={<HandleTypeFormPage />} />
+            <Route path="/doors" element={<DoorsPage />} />
+            <Route path="/cavity-sliders" element={<CavitySlidersPage />} />
+            <Route path="/hardware" element={<HardwarePage />} />
         </Routes>
     </Layout>
   );
