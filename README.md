@@ -3,6 +3,15 @@
 An internal management dashboard for a door company, built with React, TypeScript, and a .NET backend
 
 This repository is an early-stage business tool for managing jobs, quotes, customers, and product inventory.
+<div style="display: flex; gap: 16px; flex-wrap: wrap; align-items:flex-start;">
+  <img src="https://github.com/user-attachments/assets/564edfb3-a3cb-4ccb-a4f5-ebd027ba0586" 
+       width="48%" 
+       alt="Image 1">
+  <img src="https://github.com/user-attachments/assets/09c1d9f2-af43-4217-b37b-dd43def6daef" 
+       width="48%" 
+       alt="Image 2">
+</div>
+
 
 ## What it is
 
