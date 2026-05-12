@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FormWrapper } from '../../../../components/form-wrapper';
 import { Table } from '../../../../components/table';
-import Modal from '../../../../components/modal';
+import Loading from '../../../../components/loading';
 import Button from '../../../../components/button';
-import { Quote } from '../model';
+import { Quote, QuoteStatus } from '../model';
 import { getQuote, createQuote, updateQuote, deleteQuote } from '../api';
 import { Customer } from '../../customers/model';
 import { getCustomers } from '../../customers/api';
@@ -15,32 +15,10 @@ import { getDoorTypes } from '../../../side-pages/door-types/api';
 import { getHingeTypes } from '../../../side-pages/hinge-types/api';
 import { getHandleTypes } from '../../../side-pages/handle-types/api';
 import { OrderItem } from '../../jobs/model';
-
-const STANDARD_HEIGHTS = ['1980', '2200', '2400'];
+import QuoteItemModal from './item-modal';
 
 const ORDER_STATUSES = ['Order', 'Dispatched', 'Delivered'];
 const INVOICE_STATUSES = ['Invoice', 'Paid'];
-
-const blankItemForm = () => ({
-    itemType:     'Door' as OrderItem['itemType'],
-    doorTypeId:   '',
-    hingeTypeId:  '',
-    handleTypeId: '',
-    room:         '',
-    assembly:     '',
-    heightMm:     '1980',
-    widthMm:      '',
-    thicknessMm:  '32',
-    handSide:     '',
-    colourFinish: '',
-    glazing:      '',
-    fireRating:   '',
-    drilling:     'false',
-    drillSize:    '',
-    quantity:     '1',
-    unitPrice:    '',
-    notes:        '',
-});
 
 const calcItemsTotal = (items: OrderItem[]): number =>
     items.reduce((sum, item) => sum + ((item.unitPrice ?? 0) * (item.quantity ?? 1)), 0);
@@ -54,7 +32,8 @@ const QuoteFormPage: React.FC = () => {
     const [hingeTypes, setHingeTypes] = useState<HingeType[]>([]);
     const [handleTypes, setHandleTypes] = useState<HandleType[]>([]);
     const [addModal, setAddModal] = useState(false);
-    const [itemForm, setItemForm] = useState(blankItemForm());
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const [form, setForm] = useState({
         quoteNumber:  '',
@@ -75,11 +54,13 @@ const QuoteFormPage: React.FC = () => {
     });
 
     useEffect(() => {
-        getCustomers().then(setCustomers);
-        getDoorTypes().then(setDoorTypes);
-        getHingeTypes().then(setHingeTypes);
-        getHandleTypes().then(setHandleTypes);
-        if (id) {
+        if (!id) { navigate('/quotes'); return; }
+
+        const lookups = [
+            getCustomers().then(setCustomers),
+            getDoorTypes().then(setDoorTypes),
+            getHingeTypes().then(setHingeTypes),
+            getHandleTypes().then(setHandleTypes),
             getQuote(parseInt(id)).then(quote => {
                 setExisting(quote);
                 setForm({
@@ -99,8 +80,12 @@ const QuoteFormPage: React.FC = () => {
                     jobId:        quote.jobId        ?? null,
                     jobNumber:    quote.jobNumber    ?? null,
                 });
-            });
-        }
+            }),
+        ];
+
+        Promise.all(lookups)
+            .catch(() => setError('Failed to load data. Check your connection and try again.'))
+            .finally(() => setLoading(false));
     }, [id]);
 
     const itemsTotal = calcItemsTotal(form.items);
@@ -135,7 +120,7 @@ const QuoteFormPage: React.FC = () => {
         quoteNumber:  form.quoteNumber,
         customerId:   parseInt(form.customerId) || 0,
         customerName: form.customerName,
-        status:       form.status,
+        status:       form.status as QuoteStatus,
         totalAmount:  itemsTotal || null,
         deliveryDate: form.deliveryDate || null,
         validUntil:   form.validUntil   || null,
@@ -155,34 +140,43 @@ const QuoteFormPage: React.FC = () => {
     });
 
     const handleSubmit = () => {
+        setError(null);
         const data = buildSaveData();
         const action = existing
             ? updateQuote(existing.id, { ...existing, ...data })
             : createQuote(data);
-        action.then(() => navigate(getReturnPath()));
+        action
+            .then(() => navigate(getReturnPath()))
+            .catch(() => setError('Failed to save. Please try again.'));
     };
 
     const handleDelete = () => {
-        if (existing) deleteQuote(existing.id).then(() => navigate(getReturnPath()));
+        if (!existing) return;
+        setError(null);
+        deleteQuote(existing.id)
+            .then(() => navigate(getReturnPath()))
+            .catch(() => setError('Failed to delete. Please try again.'));
     };
 
     const transitionStatus = (newStatus: string, extra?: Partial<Quote>) => {
         if (!existing) return;
-        const data: Quote = { ...existing, ...buildSaveData(), status: newStatus, ...extra };
-        updateQuote(existing.id, data).then(updated => {
-            setExisting(updated);
-            setForm(prev => ({ ...prev, status: newStatus }));
-        });
+        setError(null);
+        const data: Quote = { ...existing, ...buildSaveData(), status: newStatus as Quote['status'], ...extra };
+        updateQuote(existing.id, data)
+            .then(updated => {
+                setExisting(updated);
+                setForm(prev => ({ ...prev, status: newStatus }));
+            })
+            .catch(() => setError('Failed to update status. Please try again.'));
     };
 
     const handleConvertToOrder = () => transitionStatus('Order');
-
     const handleMarkDispatched = () => transitionStatus('Dispatched');
-
-    const handleMarkDelivered = () => transitionStatus('Delivered');
+    const handleMarkDelivered  = () => transitionStatus('Delivered');
 
     const handleConvertToInvoice = () => {
         if (!existing) return;
+        setError(null);
         const sub    = itemsTotal;
         const tRate  = 0.10;
         const tAmt   = Math.round(sub * tRate * 100) / 100;
@@ -195,15 +189,17 @@ const QuoteFormPage: React.FC = () => {
             issuedAt:  new Date().toISOString().split('T')[0],
         };
         const data: Quote = { ...existing, ...buildSaveData(), status: 'Invoice', ...extra };
-        updateQuote(existing.id, data).then(updated => {
-            setExisting(updated);
-            setForm(prev => ({
-                ...prev,
-                status:   'Invoice',
-                subtotal: sub.toFixed(2),
-                taxRate:  tRate.toString(),
-            }));
-        });
+        updateQuote(existing.id, data)
+            .then(updated => {
+                setExisting(updated);
+                setForm(prev => ({
+                    ...prev,
+                    status:   'Invoice',
+                    subtotal: sub.toFixed(2),
+                    taxRate:  tRate.toString(),
+                }));
+            })
+            .catch(() => setError('Failed to convert to invoice. Please try again.'));
     };
 
     const handleMarkPaid = () => {
@@ -252,80 +248,13 @@ const QuoteFormPage: React.FC = () => {
         win.print();
     };
 
-    // Item modal handlers
-    const handleItemChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-        setItemForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-
-    const handleItemTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-        setItemForm({ ...blankItemForm(), itemType: e.target.value as OrderItem['itemType'] });
-
-    const lookupDoorPrice = (doorTypeId: string, heightMm: string, widthMm: string): string => {
-        if (!doorTypeId) return '';
-        const dt = doorTypes.find(d => d.id === parseInt(doorTypeId));
-        if (!dt) return '';
-        if (dt.prices && heightMm && widthMm) {
-            const entry = dt.prices.find(
-                p => p.heightMm === parseInt(heightMm) && p.widthMm === parseInt(widthMm)
-            );
-            if (entry) return entry.price.toString();
-        }
-        return dt.price?.toString() ?? '';
-    };
-
-    const handleDoorTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const price = lookupDoorPrice(e.target.value, itemForm.heightMm, itemForm.widthMm);
-        setItemForm(prev => ({ ...prev, doorTypeId: e.target.value, unitPrice: price }));
-    };
-
-    const handleDoorDimensionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const updated = { ...itemForm, [e.target.name]: e.target.value };
-        const price = lookupDoorPrice(updated.doorTypeId, updated.heightMm, updated.widthMm);
-        setItemForm({ ...updated, unitPrice: price || itemForm.unitPrice });
-    };
-
-    const handleHingeTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const h = hingeTypes.find(h => h.id === parseInt(e.target.value));
-        setItemForm(prev => ({ ...prev, hingeTypeId: e.target.value, unitPrice: h?.price?.toString() ?? '' }));
-    };
-
-    const handleHandleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const h = handleTypes.find(h => h.id === parseInt(e.target.value));
-        setItemForm(prev => ({ ...prev, handleTypeId: e.target.value, unitPrice: h?.price?.toString() ?? '' }));
-    };
-
-    const handleAddItem = () => {
-        const item: OrderItem = {
-            id:           0,
-            itemType:     itemForm.itemType,
-            doorTypeId:   itemForm.doorTypeId   ? parseInt(itemForm.doorTypeId)   : null,
-            hingeTypeId:  itemForm.hingeTypeId  ? parseInt(itemForm.hingeTypeId)  : null,
-            handleTypeId: itemForm.handleTypeId ? parseInt(itemForm.handleTypeId) : null,
-            room:         itemForm.room || null,
-            assembly:     itemForm.assembly || null,
-            heightMm:     itemForm.heightMm ? parseInt(itemForm.heightMm) : null,
-            widthMm:      itemForm.widthMm  ? parseInt(itemForm.widthMm)  : null,
-            thicknessMm:  itemForm.thicknessMm ? parseInt(itemForm.thicknessMm) : null,
-            handSide:     itemForm.handSide || null,
-            colourFinish: itemForm.colourFinish || null,
-            glazing:      itemForm.glazing || null,
-            fireRating:   itemForm.fireRating || null,
-            drilling:     itemForm.drilling === 'true',
-            drillSize:    itemForm.drillSize || null,
-            quantity:     itemForm.quantity ? parseInt(itemForm.quantity) : 1,
-            unitPrice:    itemForm.unitPrice ? parseFloat(itemForm.unitPrice) : null,
-            notes:        itemForm.notes || null,
-            sortOrder:    form.items.length,
-            createdAt:    null,
-        };
+    const handleAddItem = (item: OrderItem) => {
         setForm(prev => ({ ...prev, items: [...prev.items, item] }));
-        setItemForm(blankItemForm());
         setAddModal(false);
     };
 
     const handleRemoveItem = (index: number) =>
         setForm(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== index) }));
-
-    const activeOnly = <T extends { isActive: boolean }>(list: T[]) => list.filter(x => x.isActive);
 
     const workflowActions = existing ? (
         <>
@@ -351,6 +280,8 @@ const QuoteFormPage: React.FC = () => {
         </>
     ) : undefined;
 
+    if (loading) return <Loading />;
+
     return (
         <>
             <FormWrapper
@@ -359,6 +290,7 @@ const QuoteFormPage: React.FC = () => {
                 onCancel={() => navigate(getReturnPath())}
                 onDelete={existing ? handleDelete : undefined}
                 extraActions={workflowActions}
+                error={error}
             >
                 {form.jobNumber && (
                     <div className="form-field">
@@ -438,7 +370,7 @@ const QuoteFormPage: React.FC = () => {
 
                 <div className="form-field">
                     <label>Items</label>
-                    <Table
+                    <Table<OrderItem>
                         headers={[
                             { id: 'itemType',     title: 'Type' },
                             { id: 'room',         title: 'Room',     render: (v) => v ?? '—' },
@@ -506,163 +438,15 @@ const QuoteFormPage: React.FC = () => {
                 </div>
             </FormWrapper>
 
-            <Modal
+            <QuoteItemModal
                 isOpen={addModal}
-                onClose={() => { setAddModal(false); setItemForm(blankItemForm()); }}
-                title="Add Item"
-                onConfirm={handleAddItem}
-                confirmLabel="Add Item"
-            >
-                <div className="form-row">
-                    <div className="form-field">
-                        <label>Type</label>
-                        <select name="itemType" value={itemForm.itemType} onChange={handleItemTypeChange}>
-                            <option value="Door">Door</option>
-                            <option value="Handle">Handle</option>
-                            <option value="Hinge">Hinge</option>
-                        </select>
-                    </div>
-                    <div className="form-field">
-                        <label>Quantity</label>
-                        <input type="number" name="quantity" value={itemForm.quantity} onChange={handleItemChange} placeholder="1" />
-                    </div>
-                </div>
-
-                <div className="form-row">
-                    {itemForm.itemType === 'Door' && (
-                        <div className="form-field">
-                            <label>Door Type</label>
-                            <select name="doorTypeId" value={itemForm.doorTypeId} onChange={handleDoorTypeChange}>
-                                <option value="">Select door type...</option>
-                                {activeOnly(doorTypes).map(d => (
-                                    <option key={d.id} value={d.id}>{d.name}{d.material ? ` — ${d.material}` : ''}</option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-                    {itemForm.itemType === 'Hinge' && (
-                        <div className="form-field">
-                            <label>Hinge Type</label>
-                            <select name="hingeTypeId" value={itemForm.hingeTypeId} onChange={handleHingeTypeChange}>
-                                <option value="">Select hinge type...</option>
-                                {activeOnly(hingeTypes).map(h => (
-                                    <option key={h.id} value={h.id}>{h.name}{h.finish ? ` — ${h.finish}` : ''}</option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-                    {itemForm.itemType === 'Handle' && (
-                        <div className="form-field">
-                            <label>Handle Type</label>
-                            <select name="handleTypeId" value={itemForm.handleTypeId} onChange={handleHandleTypeChange}>
-                                <option value="">Select handle type...</option>
-                                {activeOnly(handleTypes).map(h => (
-                                    <option key={h.id} value={h.id}>{h.name}{h.finish ? ` — ${h.finish}` : ''}{h.mechanism ? ` (${h.mechanism})` : ''}</option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-                    <div className="form-field">
-                        <label>Unit Price</label>
-                        <input type="number" name="unitPrice" value={itemForm.unitPrice} onChange={handleItemChange} placeholder="0.00" />
-                    </div>
-                </div>
-
-                <div className="form-row">
-                    <div className="form-field">
-                        <label>Room</label>
-                        <input name="room" value={itemForm.room} onChange={handleItemChange} placeholder="e.g. Bedroom 1" />
-                    </div>
-                    <div className="form-field">
-                        <label>Assembly</label>
-                        <input name="assembly" value={itemForm.assembly} onChange={handleItemChange} placeholder="e.g. A1" />
-                    </div>
-                </div>
-
-                <div className="form-row">
-                    <div className="form-field">
-                        <label>Height (mm)</label>
-                        <select name="heightMm" value={itemForm.heightMm} onChange={handleDoorDimensionChange}>
-                            {STANDARD_HEIGHTS.map(h => <option key={h} value={h}>{h}</option>)}
-                            <option value="custom">Other</option>
-                        </select>
-                        {itemForm.heightMm === 'custom' && (
-                            <input type="number" name="heightMm" placeholder="Custom height" onChange={handleDoorDimensionChange} />
-                        )}
-                    </div>
-                    <div className="form-field">
-                        <label>Width (mm)</label>
-                        <input type="number" name="widthMm" value={itemForm.widthMm} onChange={handleDoorDimensionChange} placeholder="e.g. 810" />
-                    </div>
-                    <div className="form-field">
-                        <label>Thickness (mm)</label>
-                        <input type="number" name="thicknessMm" value={itemForm.thicknessMm} onChange={handleItemChange} placeholder="32" />
-                    </div>
-                </div>
-
-                <div className="form-row">
-                    <div className="form-field">
-                        <label>Hang Side</label>
-                        <select name="handSide" value={itemForm.handSide} onChange={handleItemChange}>
-                            <option value="">—</option>
-                            <option value="Left">Left</option>
-                            <option value="Right">Right</option>
-                        </select>
-                    </div>
-                    <div className="form-field">
-                        <label>Colour / Finish</label>
-                        <input name="colourFinish" value={itemForm.colourFinish} onChange={handleItemChange} placeholder="e.g. Primed White" />
-                    </div>
-                </div>
-
-                {itemForm.itemType === 'Door' && (
-                    <div className="form-row">
-                        <div className="form-field">
-                            <label>Handle</label>
-                            <select name="handleTypeId" value={itemForm.handleTypeId} onChange={handleItemChange}>
-                                <option value="">None</option>
-                                {activeOnly(handleTypes).map(h => (
-                                    <option key={h.id} value={h.id}>
-                                        {h.name}{h.finish ? ` — ${h.finish}` : ''}{h.mechanism ? ` (${h.mechanism})` : ''}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                )}
-
-                <div className="form-row">
-                    <div className="form-field">
-                        <label>Glazing</label>
-                        <input name="glazing" value={itemForm.glazing} onChange={handleItemChange} placeholder="e.g. Clear 6mm" />
-                    </div>
-                    <div className="form-field">
-                        <label>Fire Rating</label>
-                        <input name="fireRating" value={itemForm.fireRating} onChange={handleItemChange} placeholder="e.g. FRR 60" />
-                    </div>
-                </div>
-
-                <div className="form-row">
-                    <div className="form-field">
-                        <label>Drilling</label>
-                        <select name="drilling" value={itemForm.drilling} onChange={handleItemChange}>
-                            <option value="false">No</option>
-                            <option value="true">Yes</option>
-                        </select>
-                    </div>
-                    {itemForm.drilling === 'true' && (
-                        <div className="form-field">
-                            <label>Drill Size</label>
-                            <input name="drillSize" value={itemForm.drillSize} onChange={handleItemChange} placeholder="e.g. 54mm" />
-                        </div>
-                    )}
-                </div>
-
-                <div className="form-field">
-                    <label>Notes</label>
-                    <textarea name="notes" value={itemForm.notes} onChange={handleItemChange} />
-                </div>
-            </Modal>
+                sortOrder={form.items.length}
+                doorTypes={doorTypes}
+                hingeTypes={hingeTypes}
+                handleTypes={handleTypes}
+                onAdd={handleAddItem}
+                onClose={() => setAddModal(false)}
+            />
         </>
     );
 };

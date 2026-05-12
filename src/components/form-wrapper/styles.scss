@@ -13,6 +13,17 @@
         }
     }
 
+    .form-error-banner {
+        background: #fce4ec;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 16px;
+    }
+
     .form-body {
         background: #fff;
         border: 1px solid #e0e0e0;
@@ -81,6 +92,12 @@
             display: flex;
             gap: 12px;
             margin-left: auto;
+        }
+
+        .delete-confirm-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #c62828;
         }
 
         .btn-danger {

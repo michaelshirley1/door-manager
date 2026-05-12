@@ -4,8 +4,7 @@ import { TableProps } from './model';
 import './styles.scss';
 import Button from '../button';
 
-export const Table: React.FC<TableProps> = (props) => {
-    const { headers, rows, onRowClick, onAddClick } = props
+export function Table<T = Record<string, unknown>>({ headers, rows, onRowClick, onAddClick }: TableProps<T>) {
     return (
         <div className="table-container">
             <table className="data-table">
@@ -14,28 +13,27 @@ export const Table: React.FC<TableProps> = (props) => {
                         {headers.map((header) => (
                             <th key={header.id}>{header.title}</th>
                         ))}
-                        
-                </tr>
+                    </tr>
                 </thead>
                 <tbody>
-                    {rows.map((row: any, rowIndex: number) => (
+                    {rows.map((row, rowIndex) => (
                         <tr key={rowIndex} onClick={() => onRowClick?.(row, rowIndex)}>
                             {headers.map((header) => (
                                 <td key={header.id}>
-                                    {header.render ? header.render(row[header.id], row, rowIndex) : row[header.id]}
+                                    {header.render
+                                        ? header.render((row as Record<string, any>)[header.id], row, rowIndex)
+                                        : (row as Record<string, any>)[header.id]}
                                 </td>
                             ))}
                         </tr>
                     ))}
                 </tbody>
             </table>
-            <th>
-                {onAddClick && (
-                    <div className="table-toolbar">
-                        <Button className="table-add-btn" onClick={onAddClick}>+ Add</Button>
-                    </div>
-                )}
-            </th>
+            {onAddClick && (
+                <div className="table-toolbar">
+                    <Button className="table-add-btn" onClick={onAddClick}>+ Add</Button>
+                </div>
+            )}
         </div>
-    )
+    );
 }

@@ -26,7 +26,6 @@ export default function App() {
             <Route path="/jobs/:id/edit" element={<JobFormPage />} />
 
             <Route path="/quotes" element={<QuotesPage />} />
-            <Route path="/quotes/new" element={<QuoteFormPage />} />
             <Route path="/quotes/:id/edit" element={<QuoteFormPage />} />
 
             <Route path="/customers" element={<CustomersPage />} />

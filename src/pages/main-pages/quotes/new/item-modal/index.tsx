@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import Modal from '../../../../../components/modal';
 import { blankItemForm, lookupDoorPrice, activeOnly, buildOrderItem } from '../../../../../shared/item-utils';
-import { JobItemModalProps } from './model';
+import { QuoteItemModalProps } from './model';
 
-const JobItemModal: React.FC<JobItemModalProps> = ({ isOpen, sortOrder, doorTypes, hingeTypes, handleTypes, onAdd, onClose }) => {
+const STANDARD_HEIGHTS = ['1980', '2200', '2400'];
+
+const QuoteItemModal: React.FC<QuoteItemModalProps> = ({ isOpen, sortOrder, doorTypes, hingeTypes, handleTypes, onAdd, onClose }) => {
     const [itemForm, setItemForm] = useState(blankItemForm());
 
     const handleClose = () => {
@@ -22,7 +24,7 @@ const JobItemModal: React.FC<JobItemModalProps> = ({ isOpen, sortOrder, doorType
         setItemForm(prev => ({ ...prev, doorTypeId: e.target.value, unitPrice: price }));
     };
 
-    const handleDoorDimensionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleDoorDimensionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const updated = { ...itemForm, [e.target.name]: e.target.value };
         const price = lookupDoorPrice(doorTypes, updated.doorTypeId, updated.heightMm, updated.widthMm);
         setItemForm({ ...updated, unitPrice: price || itemForm.unitPrice });
@@ -39,7 +41,7 @@ const JobItemModal: React.FC<JobItemModalProps> = ({ isOpen, sortOrder, doorType
     };
 
     const handleAddItem = () => {
-        onAdd(buildOrderItem(itemForm, sortOrder, null));
+        onAdd(buildOrderItem(itemForm, sortOrder, 1));
         setItemForm(blankItemForm());
     };
 
@@ -116,20 +118,28 @@ const JobItemModal: React.FC<JobItemModalProps> = ({ isOpen, sortOrder, doorType
                     <input name="assembly" value={itemForm.assembly} onChange={handleItemChange} placeholder="e.g. A1" />
                 </div>
             </div>
+
             <div className="form-row">
                 <div className="form-field">
                     <label>Height (mm)</label>
-                    <input type="number" name="heightMm" value={itemForm.heightMm} onChange={handleDoorDimensionChange} placeholder="1980" />
+                    <select name="heightMm" value={itemForm.heightMm} onChange={handleDoorDimensionChange}>
+                        {STANDARD_HEIGHTS.map(h => <option key={h} value={h}>{h}</option>)}
+                        <option value="custom">Other</option>
+                    </select>
+                    {itemForm.heightMm === 'custom' && (
+                        <input type="number" name="heightMm" value="" placeholder="Custom height" onChange={handleDoorDimensionChange} />
+                    )}
                 </div>
                 <div className="form-field">
                     <label>Width (mm)</label>
-                    <input type="number" name="widthMm" value={itemForm.widthMm} onChange={handleDoorDimensionChange} placeholder="810" />
+                    <input type="number" name="widthMm" value={itemForm.widthMm} onChange={handleDoorDimensionChange} placeholder="e.g. 810" />
                 </div>
                 <div className="form-field">
                     <label>Thickness (mm)</label>
                     <input type="number" name="thicknessMm" value={itemForm.thicknessMm} onChange={handleItemChange} placeholder="32" />
                 </div>
             </div>
+
             <div className="form-row">
                 <div className="form-field">
                     <label>Hang Side</label>
@@ -171,6 +181,7 @@ const JobItemModal: React.FC<JobItemModalProps> = ({ isOpen, sortOrder, doorType
                     <input name="fireRating" value={itemForm.fireRating} onChange={handleItemChange} placeholder="e.g. FRR 60" />
                 </div>
             </div>
+
             <div className="form-row">
                 <div className="form-field">
                     <label>Drilling</label>
@@ -186,6 +197,7 @@ const JobItemModal: React.FC<JobItemModalProps> = ({ isOpen, sortOrder, doorType
                     </div>
                 )}
             </div>
+
             <div className="form-field">
                 <label>Notes</label>
                 <textarea name="notes" value={itemForm.notes} onChange={handleItemChange} />
@@ -194,4 +206,4 @@ const JobItemModal: React.FC<JobItemModalProps> = ({ isOpen, sortOrder, doorType
     );
 };
 
-export default JobItemModal;
+export default QuoteItemModal;

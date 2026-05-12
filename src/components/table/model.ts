@@ -1,14 +1,14 @@
 import React from 'react';
 
-export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
-    headers: headerItem[]
-    rows: any[]
-    onRowClick?: (row: any, index: number) => void
+export interface TableProps<T = Record<string, unknown>> {
+    headers: HeaderItem<T>[]
+    rows: T[]
+    onRowClick?: (row: T, index: number) => void
     onAddClick?: () => void
 }
 
-export interface headerItem {
+export interface HeaderItem<T = Record<string, unknown>> {
     id: string
     title: string
-    render?: (value: any, row: any, index?: number) => React.ReactNode
+    render?: (value: any, row: T, index?: number) => React.ReactNode
 }

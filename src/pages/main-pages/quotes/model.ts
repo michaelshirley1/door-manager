@@ -1,11 +1,16 @@
 export interface QuotesPageProps {}
 
+export type QuoteStatus =
+    | 'Draft' | 'Sent' | 'Accepted' | 'Declined' | 'Expired' | 'Nullified'
+    | 'Order' | 'Dispatched' | 'Delivered'
+    | 'Invoice' | 'Paid';
+
 export interface Quote {
     id: number;
     quoteNumber: string;
     customerId: number;
     customerName: string;
-    status: string; // Draft | Sent | Accepted | Declined | Expired | Nullified | Order | Dispatched | Delivered | Invoice | Paid
+    status: QuoteStatus;
     totalAmount: number | null;
     deliveryDate: string | null;
     validUntil: string | null;
