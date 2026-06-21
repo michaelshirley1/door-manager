@@ -1,0 +1,70 @@
+﻿namespace BusinessApi.Models
+{
+    public class OrderItem
+    {
+        public int Id { get; set; }
+        public int? JobId { get; set; }
+        public int? QuoteId { get; set; }
+
+        public string ItemType { get; set; } = "Door";
+        // Door | Handle | Hinge | Hardware
+
+        public int? DoorTypeId { get; set; }
+        public int? HingeTypeId { get; set; }
+        public int? HandleTypeId { get; set; }
+
+        public string? Room { get; set; }
+
+        public string? Assembly { get; set; }
+        public decimal? HeightMm { get; set; }
+        public decimal? WidthMm { get; set; }
+        public decimal? ThicknessMm { get; set; }
+        public string? HandSide { get; set; }
+        public bool Drilling { get; set; } = false;
+        public string? DrillSize { get; set; }
+        public string? Jam { get; set; }
+        public string? ColourFinish { get; set; }
+        public string? Glazing { get; set; }
+        public string? FireRating { get; set; }
+
+        public string? TrackSystem { get; set; }
+        public string? TrackType { get; set; }
+
+        public int Quantity { get; set; } = 1;
+        public decimal? UnitPrice { get; set; }
+
+        public string? Notes { get; set; }
+        public int SortOrder { get; set; } = 0;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public Job? Job { get; set; }
+        public Quote? Quote { get; set; }
+        public DoorType? DoorType { get; set; }
+        public HingeType? HingeType { get; set; }
+        public HandleType? HandleType { get; set; }
+    }
+
+    public class PurchaseOrder
+    {
+        public int Id { get; set; }
+        public int? QuoteId { get; set; }
+        public int CustomerId { get; set; }
+        public string? PoNumber { get; set; }
+        public string Status { get; set; } = "Received";
+        // Received | Confirmed | InProduction | Ready | Delivered | Cancelled
+
+        public string? SiteAddress { get; set; }
+        public string? SiteDescription { get; set; }
+
+        public DateOnly OrderDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+        public DateOnly? ExpectedDelivery { get; set; }
+        public decimal? TotalAmount { get; set; }
+        public string? Notes { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public Customer Customer { get; set; } = null!;
+        public Quote? Quote { get; set; }
+        public Job? Job { get; set; }
+    }
+}

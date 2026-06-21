@@ -1,0 +1,63 @@
+﻿namespace BusinessApi.Models
+{
+    public class DoorType
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? LeafType { get; set; }
+        public string? Material { get; set; }
+        public string? ProductRange { get; set; }
+        public int? HeightMm { get; set; }
+        public string? WidthSize { get; set; }
+        public string? SkinThickness { get; set; }
+        public string? Description { get; set; }
+        public bool IsPOA { get; set; } = false;
+        public string? Notes { get; set; }
+        public bool IsActive { get; set; } = true;
+        public float? Price { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class HingeType
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Finish { get; set; }
+        public string? SizeMm { get; set; }
+        public string? Description { get; set; }
+        public bool IsActive { get; set; } = true;
+        public float Price { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class HandleType
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Finish { get; set; }
+        public string? Mechanism { get; set; }
+        public string? Description { get; set; }
+        public bool IsActive { get; set; } = true;
+        public float Price { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class CavitySliderType
+    {
+        public int Id { get; set; }
+        public string Supplier { get; set; } = string.Empty;
+        public string ProductSystem { get; set; } = string.Empty;
+        public string? UnitType { get; set; }
+        public string? StudPocket { get; set; }
+        public string? FinishDetail { get; set; }
+        public int? HeightMm { get; set; }
+        public string? WidthRange { get; set; }
+        public float? Price { get; set; }
+        public bool IsPOA { get; set; } = false;
+        public string PriceBasis { get; set; } = "per unit";
+        public string? Category { get; set; }
+        public string? Subcategory { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
+}

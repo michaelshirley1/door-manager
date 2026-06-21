@@ -23,3 +23,9 @@ yarn-debug.log*
 yarn-error.log*
 .claude/settings.local.json
 CLAUDE.md
+
+# C# build artifacts
+server/bin/
+server/obj/
+*.user
+.vs/
