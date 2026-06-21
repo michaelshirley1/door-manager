@@ -2,6 +2,16 @@
 
 A full-stack management platform for door companies. Manage jobs, quotes, customers, invoices, purchase orders, and product catalogues from a single internal dashboard.
 
+<div style="display: flex; gap: 16px; flex-wrap: wrap; align-items:flex-start;">
+  <img src="https://github.com/user-attachments/assets/564edfb3-a3cb-4ccb-a4f5-ebd027ba0586" 
+       width="48%" 
+       alt="Image 1">
+  <img src="https://github.com/user-attachments/assets/09c1d9f2-af43-4217-b37b-dd43def6daef" 
+       width="48%" 
+       alt="Image 2">
+</div>
+
+
 ## What it does
 
 - **Jobs** — create and track installation jobs through their full lifecycle (Scheduled → In Progress → Completed)
